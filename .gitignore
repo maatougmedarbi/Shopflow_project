@@ -1,0 +1,19 @@
+# ========================
+# FRONTEND (Next.js)
+# ========================
+frontend/node_modules
+frontend/.next
+frontend/out
+
+# ========================
+# BACKEND (Java / Maven)
+# ========================
+backend/target
+backend/.idea
+backend/*.log
+
+# ========================
+# GENERAL
+# ========================
+.env
+.DS_Store
