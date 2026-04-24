@@ -1,101 +1,100 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import ProductCard from "../components/ProductCard";
+import { apiFetch, getAccessToken } from "../../lib/api";
+import toast from "react-hot-toast";
 
 export default function ProductsPage() {
   const [products, setProducts] = useState([]);
+  const [query, setQuery] = useState("");
+  const [categories, setCategories] = useState([]);
+  const [categoryId, setCategoryId] = useState("");
+  const [minPrice, setMinPrice] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
+  const [page, setPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [checked, setChecked] = useState(false);
   const [error, setError] = useState("");
   const [buyingId, setBuyingId] = useState(null);
-  const [toast, setToast] = useState(null);
+  const filtersRef = useRef({ query: "", categoryId: "", minPrice: "", maxPrice: "" });
 
   const router = useRouter();
 
-  const showToast = (message, type = "success") => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 3000);
-  };
-
-  // 🔥 AUTH CHECK (BEFORE RENDER)
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    filtersRef.current = { query, categoryId, minPrice, maxPrice };
+  }, [query, categoryId, minPrice, maxPrice]);
 
-    if (!token) {
-      router.push("/login");
-    } else {
-      setChecked(true);
-    }
+  useEffect(() => {
+    apiFetch("/api/categories")
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data) => setCategories(data));
   }, []);
 
-  const fetchProducts = async () => {
-    setLoading(true);
-    setError("");
+  const fetchProducts = useCallback(async ({ pageOverride = 0, query = "", categoryId = "", minPrice = "", maxPrice = "" } = {}) => {
+      setLoading(true);
+      setError("");
 
-    try {
-      const token = localStorage.getItem("token");
+      try {
+        const params = new URLSearchParams();
+        if (query.trim()) params.set("q", query.trim());
+        if (categoryId) params.set("categoryId", categoryId);
+        if (minPrice.trim()) params.set("minPrice", minPrice.trim());
+        if (maxPrice.trim()) params.set("maxPrice", maxPrice.trim());
+        params.set("page", String(pageOverride));
+        params.set("size", "9");
+        params.set("sortBy", "newest");
 
-      const res = await fetch("http://127.0.0.1:8081/api/products", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+        const res = await apiFetch(`/api/products/paged?${params.toString()}`);
 
-      if (!res.ok) throw new Error();
+        if (!res.ok) {
+          throw new Error("Failed to load products");
+        }
 
-      const data = await res.json();
-      setProducts(data);
-    } catch {
-      setError("Failed to load products");
-    } finally {
-      setLoading(false);
-    }
-  };
+        const data = await res.json();
+        setProducts(data.content || []);
+        setTotalPages(data.totalPages || 0);
+      } catch {
+        setError("Failed to load products");
+      } finally {
+        setLoading(false);
+      }
+    }, []);
 
   const handleOrder = async (productId) => {
+    if (!getAccessToken()) {
+      router.push("/login");
+      return;
+    }
+
     setBuyingId(productId);
 
     try {
-      const token = localStorage.getItem("token");
-
-      const res = await fetch(
-        `http://127.0.0.1:8081/api/orders?productId=${productId}&quantity=1`,
-        {
-          method: "POST",
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      const res = await apiFetch(`/api/cart/items?productId=${productId}&quantity=1`, {
+        method: "POST",
+      });
 
       if (res.ok) {
-        showToast("Order placed successfully");
-        fetchProducts();
+        toast.success("Added to cart");
+        fetchProducts({ pageOverride: page });
       } else {
-        showToast("Order failed", "error");
+        const msg = await res.text();
+        toast.error(msg || "Add to cart failed");
       }
     } catch {
-      showToast("Network error", "error");
+      toast.error("Network error");
     } finally {
       setBuyingId(null);
     }
   };
 
   useEffect(() => {
-    if (checked) {
-      fetchProducts();
-    }
-  }, [checked]);
-
-  // 🚫 BLOCK RENDER UNTIL AUTH CHECK DONE
-  if (!checked) return null;
+    fetchProducts({ pageOverride: page, ...filtersRef.current });
+  }, [page, fetchProducts]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-10">
-
-      {toast && (
-        <div className="fixed top-20 right-4 bg-white/40 backdrop-blur-md border border-white/20 px-5 py-3 rounded-xl shadow text-sm">
-          {toast.message}
-        </div>
-      )}
 
       <div className="flex justify-between items-center mb-8">
         <div>
@@ -106,10 +105,54 @@ export default function ProductsPage() {
         </div>
 
         <button
-          onClick={fetchProducts}
+          onClick={() => fetchProducts({ pageOverride: page, ...filtersRef.current })}
           className="text-sm text-gray-600 hover:text-blue-500"
         >
           Refresh
+        </button>
+      </div>
+
+      <div className="grid md:grid-cols-4 gap-3 mb-6">
+        <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search products"
+          className="rounded-xl border border-gray-200 px-3 py-2 text-sm"
+        />
+        <select
+          value={categoryId}
+          onChange={(e) => setCategoryId(e.target.value)}
+          className="rounded-xl border border-gray-200 px-3 py-2 text-sm"
+        >
+          <option value="">All categories</option>
+          {categories.map((category) => (
+            <option key={category.id} value={category.id}>
+              {category.name}
+            </option>
+          ))}
+        </select>
+        <input
+          value={minPrice}
+          onChange={(e) => setMinPrice(e.target.value)}
+          placeholder="Min price"
+          type="number"
+          className="rounded-xl border border-gray-200 px-3 py-2 text-sm"
+        />
+        <input
+          value={maxPrice}
+          onChange={(e) => setMaxPrice(e.target.value)}
+          placeholder="Max price"
+          type="number"
+          className="rounded-xl border border-gray-200 px-3 py-2 text-sm"
+        />
+        <button
+          onClick={() => {
+            setPage(0);
+            fetchProducts({ pageOverride: 0, query, categoryId, minPrice, maxPrice });
+          }}
+          className="rounded-xl bg-blue-500 text-white px-4 py-2 text-sm"
+        >
+          Filter
         </button>
       </div>
 
@@ -129,6 +172,28 @@ export default function ProductsPage() {
               buying={buyingId === product.id}
             />
           ))}
+        </div>
+      )}
+
+      {totalPages > 1 && (
+        <div className="mt-8 flex items-center justify-center gap-3">
+          <button
+            onClick={() => setPage((p) => Math.max(0, p - 1))}
+            disabled={page === 0}
+            className="rounded-xl border px-4 py-2 text-sm disabled:opacity-40"
+          >
+            Previous
+          </button>
+          <span className="text-sm text-gray-600">
+            Page {page + 1} of {totalPages}
+          </span>
+          <button
+            onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+            disabled={page >= totalPages - 1}
+            className="rounded-xl border px-4 py-2 text-sm disabled:opacity-40"
+          >
+            Next
+          </button>
         </div>
       )}
     </div>

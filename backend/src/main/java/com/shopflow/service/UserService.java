@@ -43,4 +43,14 @@ public class UserService {
 
         return userRepository.save(user);
     }
+
+    public java.util.List<User> getAll() {
+        return userRepository.findAll();
+    }
+
+    public User toggleStatus(Long id) {
+        User user = userRepository.findById(id).orElseThrow();
+        user.setActive(!user.isActive());
+        return userRepository.save(user);
+    }
 }

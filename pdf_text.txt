@@ -1,0 +1,317 @@
+Dr. Ing. Ghada Feki —  2025/2026                                                                                                                   Page 1
+ 
+                                                
+Année universitaire 2025 – 2026 
+ 
+Note totale                           20 points 
+Frontend (sur 5)                  Next.js ou Angular 
+Backend (sur 15)                 Spring Boot 3 —  Jakarta EE · MVC · JPA · Lombok 
+Rendu                                  Archive ZIP + Rapport PDF + Exposé 
+Travail                                  Binôme ou individuel 
+Durée du projet                   3 semaines 
+ 
+ 
+ShopFlow
+ 
+Système de Gestion d'une Boutique en Ligne
+ 
+Mini-PROJET 
+ 
+ShopFlow —  Projet Backend Spring Boot / Frontend ---  Enseignante : Dr. Ing. Ghada Feki
+ 
+----------------Page (0) Break----------------
+Dr. Ing. Ghada Feki —  2025/2026                                                                                                                   Page 2
+ 
+ 
+•     Réinitialisation de mot de passe par token 
+•     Activation / désactivation de compte (ADMIN) 
+•     Inscription vendeur avec informations boutique (nom, logo, description) 
+•     Gestion du profil : adresses de livraison multiples, historique de commandes 
+•     Authentification par JWT (access token + refresh token) 
+•     Inscription client avec validation (email unique, mot de passe fort) 
+2.2 Gestion des Utilisateurs 
+ 
+•     Afficher les produits en promotion (prix barré + pourcentage de remise) 
+•     Trier par prix, popularité, nouveautés ; pagination obligatoire 
+•     Recherche plein texte : nom, description, catégorie, prix min/max 
+•     Uploader des images (URL distante ou champ texte simulant l'upload) 
+•     Gérer les variantes d'un produit : taille, couleur, avec stock individuel par variante 
+•     Associer un produit à une ou plusieurs catégories 
+•     Ajouter, modifier, désactiver un produit (SELLER/ADMIN) 
+2.1 Gestion du Catalogue Produits 
+2. Spécifications Fonctionnelles 
+ 
+•     Produire une documentation Swagger/OpenAPI exploitable 
+•     Construire une interface utilisateur dynamique consommant l'API 
+•     Gérer l'authentification et les autorisations par rôle (Spring Security + JWT) 
+•     Implémenter des règles métier réelles : stock, statut de commande, remises 
+•     Modéliser des relations JPA complexes (ManyToMany, héritage, composition) 
+•     Concevoir une API REST complète avec Spring Boot 3 et Jakarta EE 
+1.2 Objectifs pédagogiques 
+ 
+commandes 
+•     CUSTOMER (Client) : navigation dans le catalogue, gestion du panier, passage de 
+•     SELLER (Vendeur) : gestion de sa boutique, de ses produits et de ses commandes reçues 
+•     ADMIN : gestion globale de la plateforme, des utilisateurs et des catégories 
+ShopFlow est une marketplace B2C (Business to Consumer) comportant trois profils utilisateurs : 
+1.1 Présentation du système 
+ 
+moderne : catalogue produits, panier, commandes, paiement simulé et gestion des stocks. 
+achats en ligne. Ce sujet couvre l'ensemble de la chaîne de valeur d'une boutique numérique 
+complète permettant à des vendeurs de publier leurs produits et à des clients d'effectuer des 
+Dans ce projet, vous devez concevoir et développer ShopFlow, une plateforme e-commerce 
+1. Contexte et Objectifs 
+ShopFlow —  Projet Backend Spring Boot / Frontend ---  Enseignante : Dr. Ing. Ghada Feki
+ 
+----------------Page (1) Break----------------
+Dr. Ing. Ghada Feki —  2025/2026                                                                                                                   Page 3
+ 
+Sécurité                                    Spring Security 6 + JWT (jjwt) —  accès token + refresh token 
+Base de données                      PostgreSQL (production) ou H2 en mémoire (dev/test) 
+Lombok                                    @Data, @Builder, @Slf4j, @RequiredArgsConstructor, @Value 
+Spring Data JPA                       Repositories, JPQL, Specifications, Pageable  
+Spring MVC                              Controllers REST —  @RestController, @RequestMapping  
+Jakarta EE                                Jakarta Persistence 3, Jakarta Validation 3, Jakarta Bean Validation  
+Spring Boot                              3.x 
+Java                                          17 ou 21 (LTS) 
+Technologie                              Version / Détail 
+3.1 Stack technologique imposée 
+3. Spécifications Techniques —  Backend (15 pts) 
+ 
+•     CUSTOMER : mes commandes en cours, mes derniers avis 
+•     SELLER : revenus, commandes en attente, alertes de stock faible 
+•     ADMIN : chiffre d'affaires global, top produits, top vendeurs, commandes récentes 
+2.6 Tableau de Bord 
+ 
+•     Modération des avis (ADMIN) 
+•     Calcul de la note moyenne automatique 
+•     Laisser un avis (note 1-5 + commentaire) uniquement sur un produit acheté 
+2.5 Avis & Notation 
+ 
+•     Notification de changement de statut (réponse API ou flag isNew) 
+•     Génération d'un numéro de commande unique (ex : ORD-2024-XXXXX) 
+•     Remboursement simulé en cas d'annulation 
+•     Annuler une commande (seulement si statut PENDING ou PAID) 
+•     Simuler le paiement : PENDING -> PAID -> PROCESSING -> SHIPPED -> DELIVERED 
+•     Choisir une adresse de livraison parmi les adresses sauvegardées 
+•     Passer une commande depuis le panier (vérification stock finale) 
+2.4 Gestion des Commandes 
+ 
+•     Sauvegarder le panier en base (persistant après déconnexion) 
+•     Calculer le sous-total, frais de livraison et total TTC 
+•     Appliquer un code promo (remise fixe ou pourcentage) 
+•     Modifier les quantités avec vérification du stock disponible en temps réel 
+•     Ajouter / retirer des produits (ou variantes) dans le panier 
+2.3 Panier d'Achat 
+ShopFlow —  Projet Backend Spring Boot / Frontend ---  Enseignante : Dr. Ing. Ghada Feki
+ 
+----------------Page (2) Break----------------
+Dr. Ing. Ghada Feki —  2025/2026                                                                                                                   Page 4
+ 
+•     POST /api/auth/logout —  invalidation du refresh token 
+•     POST /api/auth/refresh —  renouvellement du token 
+•     POST /api/auth/login —  retourne access_token + refresh_token 
+•     POST /api/auth/register —  inscription client ou vendeur 
+Authentification —  /api/auth 
+3.4 Endpoints REST attendus 
+ 
+par défaut, EAGER avec justification). 
+Les relations doivent être correctement configurées : cascade, orphanRemoval, FetchType (LAZY 
+•     Review : id, customer, product, note (1-5), commentaire, dateCreation, approuve 
+usagesActuels, actif 
+•     Coupon : id, code, type (PERCENT/FIXED), valeur, dateExpiration, usagesMax, 
+•     OrderItem : id, order, product, variant, quantite, prixUnitaire 
+fraisLivraison, totalTTC, dateCommande, lignes 
+•     Order : id, customer, statut (enum), numeroCommande, adresseLivraison, sousTotal, 
+•     CartItem : id, cart, product, variant (nullable), quantite 
+•     Cart : id, customer (1-1), lignes (1-M), dateModification 
+prixDelta 
+•     ProductVariant : id, product, attribut (ex: Taille), valeur (ex: M), stockSupplémentaire, 
+(M-M), images 
+•     Product : id, seller, nom, description, prix, prixPromo, stock, actif, dateCreation, categories 
+•     Category : id, nom, description, parent (auto-référence pour sous-catégories) 
+•     Address : id, user, rue, ville, codePostal, pays, principal (boolean) 
+•     SellerProfile : id, user (1-1), nomBoutique, description, logo, note 
+dateCreation 
+•     User : id, email, motDePasse, prenom, nom, role (ADMIN/SELLER/CUSTOMER), actif, 
+3.3 Modèle de données (entités minimales) 
+ 
+•     Mapper : conversion Entity <-> DTO (MapStruct ou manuel) 
+des erreurs 
+•     Exception : classes d'exception métier custom + @ControllerAdvice globalisant la gestion 
+•     DTO : Request / Response séparés des entités —  jamais d'entité exposée directement 
+•     Entity : entités JPA annotées (Jakarta Persistence), relations, contraintes, lifecycle hooks 
+les filtres complexes 
+•     Repository : interfaces Spring Data JPA, requêtes JPQL ou dérivées, Specifications pour 
+•     Service : contient la logique métier, les règles de gestion, les transactions (@Transactional) 
+codes HTTP 
+•     Controller : expose les endpoints REST, valide les entrées (@Valid), retourne les DTOs et 
+3.2 Architecture en couches —  obligatoire 
+ 
+Mapping DTO                               MapStruct (recommandé) ou mapping manuel  
+Documentation API                     Springdoc OpenAPI 3 (Swagger UI accessible sur /swagger -ui) 
+Build                                             Maven (pom.xml fourni) 
+ShopFlow —  Projet Backend Spring Boot / Frontend ---  Enseignante : Dr. Ing. Ghada Feki
+ 
+----------------Page (3) Break----------------
+Dr. Ing. Ghada Feki —  2025/2026                                                                                                                   Page 5
+ 
+gestion d'état...). 
+Choisissez un seul framework et justifiez votre choix dans le rapport (ecosystème, SSR, routing, 
+4.1 Framework au choix : Next.js ou Angular 
+4. Spécifications Techniques —  Frontend (5 pts) 
+ 
+•     GET /api/coupons/validate/{code} —  vérifier la validité 
+•     POST/PUT/DELETE /api/coupons —  gestion (ADMIN) 
+Coupons —  /api/coupons 
+•     GET /api/dashboard/seller —  stats du vendeur connecté 
+•     GET /api/dashboard/admin —  stats globales 
+Dashboard —  /api/dashboard 
+•     PUT /api/reviews/{id}/approve —  approuver (ADMIN) 
+•     GET /api/reviews/product/{productId} —  avis d'un produit 
+•     POST /api/reviews —  poster un avis (CUSTOMER, achat vérifié) 
+Avis —  /api/reviews 
+•     GET /api/orders —  toutes les commandes (ADMIN) 
+•     PUT /api/orders/{id}/cancel —  annuler (CUSTOMER si éligible) 
+•     PUT /api/orders/{id}/status —  mettre à jour le statut (SELLER/ADMIN) 
+•     GET /api/orders/my —  commandes du client connecté 
+•     GET /api/orders/{id} —  détail 
+•     POST /api/orders —  passer une commande depuis le panier 
+Commandes —  /api/orders 
+•     DELETE /api/cart/coupon —  retirer le code promo 
+•     POST /api/cart/coupon —  appliquer un code promo 
+•     DELETE /api/cart/items/{itemId} —  retirer un article 
+•     PUT /api/cart/items/{itemId} —  modifier quantité 
+•     POST /api/cart/items —  ajouter un article 
+•     GET /api/cart —  panier du client connecté 
+Panier —  /api/cart 
+•     POST/PUT/DELETE /api/categories —  gestion (ADMIN) 
+•     GET /api/categories —  arbre de catégories 
+Catégories —  /api/categories 
+•     GET /api/products/top-selling —  top 10 meilleures ventes 
+•     GET /api/products/search?q= —  recherche full-text 
+•     DELETE /api/products/{id} —  désactiver (soft delete) 
+•     PUT /api/products/{id} —  modifier 
+•     POST /api/products —  créer (SELLER/ADMIN) 
+•     GET /api/products/{id} —  détail + variantes + avis + note moyenne 
+•     GET /api/products —  liste paginée + filtres (categorie, prix, vendeur, promo) 
+Produits —  /api/products 
+ShopFlow —  Projet Backend Spring Boot / Frontend ---  Enseignante : Dr. Ing. Ghada Feki
+ 
+----------------Page (4) Break----------------
+Dr. Ing. Ghada Feki —  2025/2026                                                                                                                   Page 6
+ 
+ 
+ 
+TOTAL BACKEND                                            15        + 2 bonus 
+70%)
+ 
+BONUS : Tests JUnit/Mockito                             +2        Tests sur la couche Service (couverture >= 
+fonctionnel, README
+ 
+Qualité & documentation                                     2         Lombok, proprete code, Swagger UI 
+par endpoint
+ 
+Sécurité JWT & autorisation par rôle                    3         Access/refresh token, filtres, @PreAuthorize 
+gestion des cas limites
+ 
+Couche Controller REST                                     2         Codes HTTP corrects, validation @Valid, 
+transactions
+ 
+Couche Service & logique métier                         3         Règles commande, stock, coupon, statut, 
+performances
+ 
+Repository & requêtes de données                      2         Filtres, pagination, JPQL, Specifications, 
+héritage
+ 
+Modèle de données & entités JPA                       3         Relations, contraintes DB, enums, lifecycle, 
+Critère d'évaluation                                      Pts          Ce que nous évaluerons 
+5.1 Backend —  15 points 
+5. Grille d'Évaluation Détaillée 
+ 
+•     Optionnel (+bonus) : mode sombre, animations de transition, PWA 
+•     Composants réutilisables : ProductCard, OrderStatusBadge, RatingStars, etc. 
+•     Guards/middleware de route pour les pages protégées 
+•     Refresh automatique du token expiré 
+•     Intercepteur HTTP pour injecter le Bearer token dans chaque requête 
+•     Gestion des états : chargement (skeleton/spinner), erreurs, listes vides 
+•     Design responsive (mobile-first recommandé) 
+4.3 Critères de qualité 
+ 
+•     Authentification : login / register avec gestion JWT (stockage sécurisé) 
+•     Espace vendeur : dashboard rapide, gestion produits, commandes reçues 
+•     Espace client : mes commandes + suivi statut, mes avis 
+•     Tunnel de commande : sélection adresse, récapitulatif, confirmation 
+•     Panier : liste des articles, application coupon, total, bouton Commander 
+•     Fiche produit : images, variantes sélectionnables, avis, bouton Ajouter au panier 
+•     Catalogue produits : grille avec filtres dynamiques (catégorie, prix, note) et recherche 
+•     Page d'accueil : produits en vedette, catégories, bannière promo 
+4.2 Pages & fonctionnalités minimales 
+ 
+ShopFlow —  Projet Backend Spring Boot / Frontend ---  Enseignante : Dr. Ing. Ghada Feki
+ 
+----------------Page (5) Break----------------
+Dr. Ing. Ghada Feki —  2025/2026                                                                                                                   Page 7
+ 
+9.   Documenter avec Swagger au fur et à mesure 
+8.   Ajouter la sécurité Spring Security + JWT en avant-dernière étape 
+7.   Développer les services module par module : Auth → Catalogue → Panier → Commandes 
+6.   Implémenter les repositories avec des tests de requêtes simples 
+5.   Modéliser les entités et valider le schéma DB (H2 Console) 
+Ordre de développement recommandé 
+7. Conseils Méthodologiques & Ressources 
+ 
+•     Questions (4 min) 
+•     Présentation du code : entités JPA, service le plus complexe, sécurité JWT (3 min) 
+•     Démonstration live du flux complet : inscription → achat → suivi commande (3 min) 
+6.3 Déroulement de la soutenance (10 min) 
+ 
+4.   Répartition des tâches si binôme 
+3.   Difficultés rencontrées et solutions apportées 
+2.   Description des choix d'implémentation les plus complexes 
+1.   Schéma d'architecture technique (couches + flux de données) 
+6.2 Contenu du rapport technique 
+ 
+•     data.sql (optionnel) —  données de démonstration pour la présentation 
+•     shopflow.postman_collection.json —  collection Postman couvrant tous les endpoints 
+•     README.md —  instructions complètes d'installation et de lancement 
+•     rapport.pdf —  6 à 8 pages : architecture, choix techniques, difficultés 
+•     frontend/ —  code source Next.js ou Angular (sans node_modules/ ni .next/) 
+•     backend/ —  code source Spring Boot (sans target/) 
+6.1 Contenu de l'archive ZIP 
+6. Livrables & Modalités de Rendu 
+ 
+ 
+TOTAL FRONTEND                                           5         /5 points 
+d'états
+ 
+Qualité du code & UX/UI                                     1         Responsive, composants réutilisables, gestion 
+commandes 
+Fonctionnalités UI : catalogue, panier,                    2         Flux complet d'achat fonctionnel 
+routes gardées
+ 
+Intégration API & gestion JWT                             2         Appels HTTP, intercepteur, refresh token, 
+Critère d'évaluation                                      Pts          Ce que nous évaluerons 
+5.2 Frontend —  5 points 
+ShopFlow —  Projet Backend Spring Boot / Frontend ---  Enseignante : Dr. Ing. Ghada Feki
+ 
+----------------Page (6) Break----------------
+Dr. Ing. Ghada Feki —  2025/2026                                                                                                                   Page 8
+ 
+. 
+ 
+•     Angular : https://angular.dev/overview 
+•     Next.js : https://nextjs.org/docs 
+•     MapStruct : https://mapstruct.org/documentation/stable/reference/html/ 
+•     Springdoc OpenAPI : https://springdoc.org/ 
+•     Lombok : https://projectlombok.org/features/ 
+•     Spring Security 6 + JWT : https://docs.spring.io/spring-security/reference/ 
+•     Spring Data JPA : https://docs.spring.io/spring-data/jpa/docs/current/reference/html/ 
+•     Spring Boot 3 docs : https://docs.spring.io/spring-boot/docs/current/reference/html/ 
+Ressources 
+ 
+11. Soigner la collection Postman avant le rendu 
+10. Développer le frontend une fois l'API backend stabilisée 
+ShopFlow —  Projet Backend Spring Boot / Frontend ---  Enseignante : Dr. Ing. Ghada Feki
+ 
+----------------Page (7) Break----------------

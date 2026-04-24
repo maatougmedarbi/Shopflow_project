@@ -4,6 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Input from "../components/Input";
+import { API_BASE, setTokens } from "../../lib/api";
+import toast from "react-hot-toast";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -18,7 +20,7 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const res = await fetch("http://127.0.0.1:8081/api/auth/login", {
+      const res = await fetch(`${API_BASE}/api/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -34,9 +36,9 @@ export default function LoginPage() {
         return;
       }
 
-      const data = await res.text();
-      localStorage.setItem("token", data);
-      alert("Login success");
+      const data = await res.json();
+      setTokens(data.accessToken, data.refreshToken);
+      toast.success("Login success");
       router.push("/products");
     } catch (err) {
       console.error(err);

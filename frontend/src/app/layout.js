@@ -1,5 +1,12 @@
 import "./globals.css";
 import Navbar from "./components/Navbar";
+import { Toaster } from "react-hot-toast";
+import { Inter } from "next/font/google";
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+});
 
 export const metadata = {
   title: "ShopFlow — Modern E-Commerce",
@@ -9,23 +16,14 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link
-          rel="preconnect"
-          href="https://fonts.gstatic.com"
-          crossOrigin="anonymous"
-        />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
-          rel="stylesheet"
-        />
-      </head>
-
-      <body className="min-h-screen flex flex-col font-[Inter] bg-gradient-to-br from-blue-50 via-white to-sky-100 text-gray-800">
+    <html lang="en" className={inter.variable}>
+      <body 
+        className={`${inter.className} min-h-screen flex flex-col bg-gradient-to-br from-blue-50 via-white to-sky-100 text-gray-800`}
+        suppressHydrationWarning
+      >
 
         <Navbar />
+        <Toaster position="top-center" />
 
         <main className="flex-1 px-4 sm:px-6 lg:px-8 py-8">
           {children}

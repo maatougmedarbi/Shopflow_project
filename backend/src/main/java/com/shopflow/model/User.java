@@ -19,6 +19,7 @@ public class User {
     private String email;
 
     @Column(nullable = false)
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private String password;
 
     private String firstName;
@@ -27,5 +28,6 @@ public class User {
     @Enumerated(EnumType.STRING)
     private Role role;
 
+    @Builder.Default
     private boolean active = true;
 }

@@ -1,8 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import Image from "next/image";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Input from "../../components/Input";
+import { apiFetch, getAccessToken } from "../../../lib/api";
+import toast from "react-hot-toast";
 
 export default function CreateProductPage() {
   const [form, setForm] = useState({
@@ -11,23 +14,46 @@ export default function CreateProductPage() {
     price: "",
     quantity: "",
   });
+  const [categories, setCategories] = useState([]);
+  const [categoryId, setCategoryId] = useState("");
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState("");
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState(false);
   const router = useRouter();
 
   const set = (field) => (e) =>
     setForm((prev) => ({ ...prev, [field]: e.target.value }));
 
+  useEffect(() => {
+    apiFetch("/api/categories")
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data) => setCategories(data));
+  }, []);
+
+  const onImageChange = (e) => {
+    const file = e.target.files?.[0] || null;
+    setImageFile(file);
+    if (!file) {
+      setImagePreview("");
+      return;
+    }
+    const objectUrl = URL.createObjectURL(file);
+    setImagePreview(objectUrl);
+  };
+
   const validate = () => {
     const e = {};
     if (!form.name.trim()) e.name = "Product name is required.";
-    if (!form.price || isNaN(Number(form.price)) || Number(form.price) <= 0)
+    if (
+      !form.price ||
+      Number.isNaN(Number(form.price)) ||
+      Number(form.price) <= 0
+    )
       e.price = "Enter a valid price greater than 0.";
     if (
       !form.quantity ||
-      isNaN(Number(form.quantity)) ||
+      Number.isNaN(Number(form.quantity)) ||
       !Number.isInteger(Number(form.quantity)) ||
       Number(form.quantity) < 0
     )
@@ -35,50 +61,81 @@ export default function CreateProductPage() {
     return e;
   };
 
+  useEffect(() => {
+    return () => {
+      if (imagePreview) {
+        URL.revokeObjectURL(imagePreview);
+      }
+    };
+  }, [imagePreview]);
+
   const handleCreate = async (e) => {
     e.preventDefault();
-    setError("");
-    setSuccess(false);
     const fieldErrors = validate();
     setErrors(fieldErrors);
     if (Object.keys(fieldErrors).length > 0) return;
 
     setLoading(true);
     try {
-      const token = localStorage.getItem("token");
+      const token = getAccessToken();
       if (!token) {
         router.push("/login");
         return;
       }
-      const res = await fetch("http://127.0.0.1:8081/api/products", {
+
+      let imageUrl = "";
+      if (imageFile) {
+        const uploadData = new FormData();
+        uploadData.append("file", imageFile);
+
+        const uploadRes = await apiFetch("/api/products/upload-image", {
+          method: "POST",
+          body: uploadData,
+        });
+
+        if (!uploadRes.ok) {
+          const msg = await uploadRes.text();
+          toast.error(msg || "Image upload failed.");
+          setLoading(false);
+          return;
+        }
+
+        const uploaded = await uploadRes.json();
+        imageUrl = uploaded.imageUrl || "";
+      }
+
+      const res = await apiFetch("/api/products", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           name: form.name,
           description: form.description,
+          imageUrl,
+          categoryIds: categoryId ? [Number(categoryId)] : [],
           price: Number(form.price),
           quantity: Number(form.quantity),
         }),
       });
 
       if (res.status === 401 || res.status === 403) {
-        setError("You don't have permission. Seller role required.");
+        toast.error("You don't have permission. Seller role required.");
         return;
       }
       if (!res.ok) {
         const msg = await res.text();
-        setError(msg || "Failed to create product.");
+        toast.error(msg || "Failed to create product.");
         return;
       }
 
-      setSuccess(true);
+      toast.success("Product created!");
       setForm({ name: "", description: "", price: "", quantity: "" });
+      setImageFile(null);
+      setImagePreview("");
       setTimeout(() => router.push("/products"), 1200);
     } catch {
-      setError("Could not reach the server. Please try again.");
+      toast.error("Could not reach the server.");
     } finally {
       setLoading(false);
     }
@@ -89,12 +146,13 @@ export default function CreateProductPage() {
       <div className="max-w-xl">
         {/* Breadcrumb */}
         <nav className="flex items-center gap-2 text-sm text-gray-400 mb-6">
-          <span
-            className="hover:text-[blue-500] cursor-pointer transition-colors"
+          <button
+            type="button"
+            className="hover:text-blue-500 transition-colors"
             onClick={() => router.push("/products")}
           >
             Products
-          </span>
+          </button>
           <svg
             className="w-4 h-4"
             fill="none"
@@ -120,41 +178,7 @@ export default function CreateProductPage() {
 
         {/* Card */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
-          {/* Success */}
-          {success && (
-            <div className="mb-6 flex items-center gap-3 bg-green-50 border border-green-200 text-green-700 text-sm px-4 py-3 rounded-xl">
-              <svg
-                className="w-5 h-5 flex-shrink-0"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              Product created! Redirecting to catalogue…
-            </div>
-          )}
 
-          {/* Error */}
-          {error && (
-            <div className="mb-6 flex items-center gap-3 bg-red-50 border border-red-200 text-red-600 text-sm px-4 py-3 rounded-xl">
-              <svg
-                className="w-5 h-5 flex-shrink-0"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              {error}
-            </div>
-          )}
 
           <form onSubmit={handleCreate} className="flex flex-col gap-5">
             <Input
@@ -207,6 +231,51 @@ export default function CreateProductPage() {
                 disabled={loading}
                 error={errors.quantity}
               />
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-medium text-gray-700" htmlFor="product-image">
+                Product image
+              </label>
+              <input
+                id="product-image"
+                type="file"
+                accept="image/*"
+                onChange={onImageChange}
+                disabled={loading}
+                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-900 file:mr-4 file:rounded-lg file:border-0 file:bg-blue-50 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-blue-700 hover:file:bg-blue-100 disabled:opacity-50"
+              />
+              <p className="text-xs text-gray-500">Optional. Max size 5MB.</p>
+              {imagePreview ? (
+                <Image
+                  src={imagePreview}
+                  alt="Selected product preview"
+                  width={800}
+                  height={320}
+                  unoptimized
+                  className="mt-2 h-40 w-full rounded-xl object-cover border border-gray-200"
+                />
+              ) : null}
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-medium text-gray-700" htmlFor="product-category">
+                Category
+              </label>
+              <select
+                id="product-category"
+                value={categoryId}
+                onChange={(e) => setCategoryId(e.target.value)}
+                disabled={loading}
+                className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm text-gray-900 disabled:opacity-50"
+              >
+                <option value="">No category</option>
+                {categories.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div className="flex gap-3 pt-2">

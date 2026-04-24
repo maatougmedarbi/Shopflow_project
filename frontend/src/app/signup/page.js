@@ -4,6 +4,9 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Input from "../components/Input";
+import PasswordStrengthMeter from "../components/PasswordStrengthMeter";
+import { API_BASE, setTokens } from "../../lib/api";
+import toast from "react-hot-toast";
 
 export default function SignupPage() {
   const [firstName, setFirstName] = useState("");
@@ -11,6 +14,7 @@ export default function SignupPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
+  const [role, setRole] = useState("CUSTOMER");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
@@ -29,15 +33,20 @@ export default function SignupPage() {
       return;
     }
 
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters.");
+    const hasMinLength = password.length >= 8;
+    const hasUpper = /[A-Z]/.test(password);
+    const hasDigit = /\d/.test(password);
+    const hasSpecial = /[!@#$%^&*()_+\-=\\[\]{};':"\\\\|,.<>/?]/.test(password);
+
+    if (!hasMinLength || !hasUpper || !hasDigit || !hasSpecial) {
+      setError("Password does not meet the policy requirements.");
       return;
     }
 
     setLoading(true);
 
     try {
-      const res = await fetch("http://127.0.0.1:8081/api/users", {
+      const res = await fetch(`${API_BASE}/api/auth/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -47,6 +56,7 @@ export default function SignupPage() {
           lastName,
           email,
           password,
+          role,
         }),
       });
 
@@ -56,8 +66,10 @@ export default function SignupPage() {
         return;
       }
 
-      alert("Account created");
-      router.push("/login");
+      const data = await res.json();
+      setTokens(data.accessToken, data.refreshToken);
+      toast.success("Account created");
+      router.push("/products");
     } catch (err) {
       console.error(err);
       setError("Could not reach the server.");
@@ -131,16 +143,19 @@ export default function SignupPage() {
               disabled={loading}
             />
 
-            <Input
-              id="signup-password"
-              label="Password"
-              type="password"
-              placeholder="Minimum 6 characters"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              disabled={loading}
-            />
+            <div>
+              <Input
+                id="signup-password"
+                label="Password"
+                type="password"
+                placeholder="Secure password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                disabled={loading}
+              />
+              <PasswordStrengthMeter password={password} />
+            </div>
 
             <Input
               id="confirm-password"
@@ -152,6 +167,19 @@ export default function SignupPage() {
               required
               disabled={loading}
             />
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1.5 ml-1">Account Type</label>
+              <select
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+                className="w-full rounded-2xl border border-gray-200 bg-white/50 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                disabled={loading}
+              >
+                <option value="CUSTOMER">Customer</option>
+                <option value="SELLER">Seller</option>
+              </select>
+            </div>
 
             <button
               type="submit"

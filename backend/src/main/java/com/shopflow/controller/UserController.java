@@ -28,4 +28,16 @@ public class UserController {
     public User updateMe(@RequestBody User updated) {
         return userService.updateUser(updated);
     }
+
+    @GetMapping
+    @org.springframework.security.access.prepost.PreAuthorize("hasRole('ADMIN')")
+    public java.util.List<User> getAll() {
+        return userService.getAll();
+    }
+
+    @PutMapping("/{id}/toggle")
+    @org.springframework.security.access.prepost.PreAuthorize("hasRole('ADMIN')")
+    public User toggleStatus(@PathVariable Long id) {
+        return userService.toggleStatus(id);
+    }
 }
